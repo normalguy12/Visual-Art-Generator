@@ -9,13 +9,48 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.0",
+    "@chakra-ui/react": "^2.7.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@interactjs/auto-start": "^1.10.17",
+    "@react-spring/web": "^9.7.3",
+    "@react-three/drei": "^9.77.1",
+    "@react-three/fiber": "^8.13.0",
+    "@reduxjs/toolkit": "^1.9.5",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
     "autoprefixer": "10.4.14",
+    "bootstrap": "^5.3.0",
+    "dat.gui": "^0.7.9",
     "eslint": "8.42.0",
     "eslint-config-next": "13.4.4",
+    "framer-motion": "^10.12.16",
+    "interactjs": "^1.10.17",
+    "leva": "^0.9.35",
     "next": "13.4.4",
+    "nodejs": "^0.0.0",
     "postcss": "8.4.24",
     "react": "18.2.0",
+    "react-beautiful-dnd": "^13.1.1",
+    "react-dat-gui": "^4.1.1",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "18.2.0",
-    "tailwindcss": "3.3.2"
+    "react-hook-form": "^7.45.2",
+    "react-particles-webgl": "^1.0.10",
+    "react-redux": "^8.1.1",
+    "redux-logger": "^3.0.6",
+    "tailwindcss": "3.3.2",
+    "three": "^0.153.0",
+    "web-midi-api": "^2.2.5",
+    "webmidi": "^3.1.6",
+    "zustand": "^4.4.1"
+  },
+  "browser": {
+    "child_process": false,
+    "fs": false
+  },
+  "devDependencies": {
+    "@react-three/test-renderer": "^8.2.0"
   }
 }
