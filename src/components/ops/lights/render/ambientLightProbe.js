@@ -10,7 +10,7 @@ function AmbientLightProbe() {
     }
   }, [])
 
-  const control = useControls('ambientLight', options)
+  const control = useControls('ambientLighProbe', options)
   return (
     <ambientLightProbe args={[control.color, control.intensity]}/>
   )

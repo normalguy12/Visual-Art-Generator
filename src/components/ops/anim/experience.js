@@ -1,5 +1,5 @@
 import { OrbitControls } from "@react-three/drei";
-import { Model } from "../skeleton/Xbot";
+import { Model } from "../models/Xbot";
 
 const Experience = () => {
   return (

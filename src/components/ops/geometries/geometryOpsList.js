@@ -8,6 +8,7 @@ import IscoOperator from "./operators/iscoOperator"
 import OctaOperator from "./operators/octaOperator"
 import RingOperator from "./operators/ringOperator"
 import ModelLoadOperator from "./operators/modelLoadOperator"
+import SoundOperator from "./operators/soundOperator"
 
 export const GeometryOpsList = [
   {
@@ -68,6 +69,12 @@ export const GeometryOpsList = [
     optype: 'loader',
     element(){
       return <ModelLoadOperator/>
+    }
+  },
+  {
+    optype: 'sound',
+    element(){
+      return <SoundOperator/>
     }
   },
   

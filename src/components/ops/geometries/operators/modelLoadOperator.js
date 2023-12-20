@@ -6,7 +6,7 @@ import { Box } from '@chakra-ui/react'
 import interact from 'interactjs'
 
 import store from '@/redux/store'
-import { modelLoader } from '../../skeleton/modelLoader'
+import { modelLoader } from '../../models/modelLoader'
 
 function ModelLoadOperator() {
   let position = { x: 0, y: 0 }

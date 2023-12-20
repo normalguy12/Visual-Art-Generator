@@ -14,16 +14,23 @@ export const renderSlice = createSlice({
       // immutable state based off those changes
       return{
         ...state,
-        value: [...state.value, action.payload]
+        value: [...state.value, action.payload],
       }
     },
     getCount: (state) =>{
       state.count += 1
+    },
+    getUpdate: (state, action) =>{
+      let arr = action.payload
+      return{
+        ...state,
+        value: arr
+      }
     }
   }
 })
 
-export const { getRenderItem, getCount } = renderSlice.actions
+export const { getRenderItem, getCount, getUpdate } = renderSlice.actions
 
 export default renderSlice.reducer
 

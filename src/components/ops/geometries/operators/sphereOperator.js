@@ -7,7 +7,7 @@ import interact from 'interactjs'
 import { DeleteIcon } from '@chakra-ui/icons'
 
 import store from '@/redux/store'
-import { modelLoader } from '../../skeleton/modelLoader'
+import { modelLoader } from '../../models/modelLoader'
 import ReactWebMidi from '@/webmidi/webmidi'
 function SphereOperator() {
   let position = { x: 0, y: 0 }

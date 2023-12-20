@@ -3,7 +3,9 @@ import { useFrame } from '@react-three/fiber'
 import { useMemo } from 'react'
 import { useControls } from 'leva'
 import store from '@/redux/store'
-import MidiScriptTest from '@/webmidi/midiScriptTest'
+
+import MidiScript from '@/webmidi/midiScript'
+
 export default function Ring (props) {
   // This reference gives us direct access to the THREE.Mesh object.
   const options = useMemo(()=>{
@@ -27,7 +29,7 @@ export default function Ring (props) {
 
   const control = useControls('Ring', options)
 
-  const test = MidiScriptTest()
+  const test = MidiScript()
 
   const ref = useRef()
   useFrame(() => {
@@ -37,7 +39,7 @@ export default function Ring (props) {
   // These are regular three.js elements expressed in JSX.
   return (
     <mesh
-
+      visible={control.visible}
       ref = {ref}   
       position={[control.x, control.y, control.z]}
       rotation={[control.rotx, control.roty, control.rotz]}

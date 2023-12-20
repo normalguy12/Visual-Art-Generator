@@ -1,344 +1,245 @@
-import clock from './clock'
-import { NUM_ABLETON_MIDI_CHANNELS } from './constants'
+'use client'
 
-const NoteMapping = {
-  on: false,
-  startedAt: 0.0,
-  endedAt: 0.0,
-  noteOnVelocity: 0.0,
-  noteOffVelocity: 0.0,
-}
+import { useEffect, useState, memo } from "react"
+import store from "@/redux/store"
+import MidiScript from "./midiScript"
 
-/* eslint-disable-next-line */
-const MIDI_NOTE_ON = 144
-/* eslint-disable-next-line */
-const MIDI_NOTE_OFF = 128
+function WebMidiTest(){  
+  
+  let velocity;
 
-const NUM_LAST_NOTES = 5
+  const test = MidiScript()
 
-const {WebMidi} = require("webmidi");
+  useEffect(()=>{
+    const log = console.log.bind(console)
+  let midi
+  const context = new (window.AudioContext || window.webkitAudioContext)()
+  const btn = document.getElementsByClassName('button')
+  var data
+  let cmd
+  let channel
+  var type
+  var note
+  var velocity
+  let samplepaths
 
-class WebMidiWrapper {
-  constructor() {
-    this.keyboard = null
+  // const [test, setTest] = useState({
+  //   note: '',
+  //   velocity: 0
+  // })
 
-    this.notesCurrentlyDown = new Array(10).fill(false)
 
-    this.numNotesCurrentlyDown = 0
-    this.noteOnListeners = {}
-    this.noteOffListeners = {}
 
-    this.lastNoteOnStartedAt = 0.0
+  let test = {
+    note: '',
+    velocity: 0
+  }
 
-    this.noteArray = {}
+  let samples = ['/kick.wav', '/snare.wav', '/synth.mp3', '_.mp3', '/isaiah.mp3', '/rooting.mp3']
+  // samples.push(`/${store.getState().audioGet.value}`)
+  
+  if (navigator.requestMIDIAccess) {
+    navigator.requestMIDIAccess({
+      sysex: false
+    }).then(onMIDISuccess, onMIDIFailure)
+  } else {
+    alert('No MIDI support in your browser.')
+  }
 
-    // for an 88 key Roland FP 30
-    for (let i = 21; i < 108; ++i) {
-      this.noteArray[i] = Object.assign({}, NoteMapping)
+  // add event listeners
+  // document.addEventListener('keydown', keyController)
+  // document.addEventListener('keyup', keyController)
+  for (let i = 0; i < btn.length; i++) {
+    btn[i].addEventListener('mousedown', clickPlayOn)
+    btn[i].addEventListener('mouseup', clickPlayOff)
+  }
+  // prepare audio files
+  for (let i = 0; i < btn.length; i++) {
+    addAudioProperties(btn[i])
+  }
+
+  const sampleMap = {
+    key60: 1,
+    key61: 2,
+    key62: 3,
+    key63: 4,
+    key64: 5,
+    key65: 6,
+    key66: 7,
+    key67: 8,
+    key68: 9,
+    key69: 10,
+    key70: 11,
+    key70: 12
+  }
+  // user interaction
+  function clickPlayOn (e) {
+    e.target?.classList.add('active')
+    e.target?.play()
+  }
+
+  function clickPlayOff (e) {
+    e.target?.classList.remove('active')
+  }
+
+  // midi functions
+  function onMIDISuccess (midiAccess) {
+    midi = midiAccess
+    const inputs = midi.inputs.values()
+    // loop through all inputs
+    for (let input = inputs.next(); input && !input.done; input = inputs.next()) {
+      // listen for midi messages
+      input.value.onmidimessage = onMIDIMessage
+      listInputs(input)
     }
+    // listen for connect/disconnect message
+    midi.onstatechange = onStateChange
+  }
 
-    // stores last `NUM_LAST_NOTES` notes played
-    // should not write anything to this directly, because
-    // it's a circular queue but looks like an array.
-    this.lastNotes = []
+  function onMIDIFailure (e) {
+    log("No access to MIDI devices or your browser doesn't support WebMIDI API. Please use WebMIDIAPIShim " + e)
+  }
+
+  function onMIDIMessage (event) {
+    data = event.data
+    cmd = data[0] >> 4
+    channel = data[0] & 0xf
+    type = data[0] & 0xf0 // channel agnostic message type. Thanks, Phil Burk.
+    note = data[1]
+    velocity = data[2]
+    // with pressure and tilt off
+    // note off: 128, cmd: 8
+    // note on: 144, cmd: 9
+    // pressure / tilt on
+    // pressure: 176, cmd 11:
+    // bend: 224, cmd: 14
+    log('MIDI data', data)
+
+    // Display Midi Notes  
+    switch (type) {
+      case 144: // noteOn message
+        noteOn(note, velocity)
+        break
+      case 128: // noteOff message
+        noteOff(note, velocity)
+        break
+    }
+    // setTest({
+    //   note: note,
+    //   velocity: velocity
+    // })
+    test.note = note;
+    test.velocity = velocity;
+  }
+
+  function onStateChange (event) {
+    const port = event.port
+    const state = port.state
+    const name = port.name
+    const type = port.type
+    if (type === 'input') {
+      log('name', name, 'port', port, 'state', state)
+    }
+  }
+
+  function midiToFreq(number){
+    const a =440;
+    return (a/32) * (2 ** ((number-9)/12))
+  }
+
+  function listInputs (inputs) {
+    const input = inputs.value
+    log("Input port : [ type:'" + input.type + "' id: '" + input.id + "' manufacturer: '" + input.manufacturer + "' name: '" + input.name + "' version: '" + input.version + "']")
+  }
+
+  function noteOn (midiNote, velocity) {
+    player(midiNote, velocity)
+    setupSamples(samples).then((response)=>{
+      samplepaths = response;
+      console.log(samplepaths)
+      switch(midiNote){
+        case (36):{
+          playSample(samplepaths[0], 0)
+          break;
+        }
+        case (37):{
+          playSample(samplepaths[1], 0)
+          break;
+        }
+        case (38):{
+          playSample(samplepaths[2], 0)
+          break;
+        }
+        case (39):{
+          playSample(samplepaths[3], 0)
+          break;
+        }
+        case (44):{
+          playSample(samplepaths[4], 0)
+          break;
+        }
+        case (45):{
+          playSample(samplepaths[5], 0)
+          break;
+        }
+      }
+    })
     
-    WebMidi.enable(err => {
-      if (err) {
-        console.log('WebMid could not be enabled: ', err)
+  }
+
+  function noteOff (midiNote, velocity) {
+    player(midiNote, velocity)
+    // drums.gain.disconnect()
+    // const drumGain = drums.gain
+    // drums.source.stop();
+  }
+
+  function player (note, velocity) {
+    const sample = sampleMap['key' + note]
+    if (sample) {
+      if (type === (0x80 & 0xf0) || velocity === 0) {
+        // needs to be fixed for QuNexus, which always returns 144
+        btn[sample - 1]?.classList.remove('active')
         return
       }
-
-      if (WebMidi.inputs.length === 0) {
-        return
-      }
-
-      //this.keyboard = WebMidi.inputs[0]
-      this.keyboard = WebMidi.getInputByName('Launchkey MIDI') || WebMidi.getInputByName('MIDIIN2 (Launchkey MIDI)') || null
-      if (this.keyboard) {
-        this.keyboard.addListener('noteon', 'all', this.noteOn)
-        this.keyboard.addListener('noteoff', 'all', this.noteOff)
-      }
-
-      this.abletonNoteOnListeners = []
-      this.abletonNoteOffListeners = []
-      this.abletonControlChangeListeners = []
-      for (let i = 0; i < NUM_ABLETON_MIDI_CHANNELS; ++i) {
-        this.abletonNoteOnListeners.push({})
-        this.abletonNoteOffListeners.push({})
-        this.abletonControlChangeListeners.push({})
-      }
-
-      this.ableton = WebMidi.getInputByName('loopMIDI Port IN')
-      if (this.ableton) {
-        this.ableton.addListener('noteon', 'all', this.abletonNoteOn)
-        this.ableton.addListener('noteoff', 'all', this.abletonNoteOff)
-        this.ableton.addListener('controlchange', 'all', this.abletonControlSignal)
-      }
-    }, true)
-  }
-
-  abletonControlSignal = event => {
-    let { channel } = event
-    channel--
-    const controlChangeListenerNames = Object.keys(this.abletonControlChangeListeners[channel])
-    controlChangeListenerNames.forEach(listenerName => {
-      if (listenerName === 'undefined') {
-        console.error('Attempted to access undefined listener name.')
-      } else {
-        const entry = this.abletonControlChangeListeners[channel][listenerName]
-        if (entry instanceof Function) {
-          entry(event)
-        } else if (entry instanceof Array) {
-          for (let i = 0; i < entry.length; ++i) {
-            entry[i](event)
-          }
-        }
-      }
-    })
-  }
-
-  abletonNoteOn = event => {
-    let { channel } = event
-    channel--
-    const noteOnListenerNames = Object.keys(this.abletonNoteOnListeners[channel])
-    noteOnListenerNames.forEach(listenerName => {
-      if (listenerName === 'undefined') {
-        console.error('Attempted to access undefined listener name.')
-      } else {
-        const { note } = event
-        const entry = this.abletonNoteOnListeners[channel][listenerName]
-        if (entry instanceof Function) {
-          entry(note)
-        } else if (entry instanceof Array) {
-          for (let i = 0; i < entry.length; ++i) {
-            entry[i](note)
-          }
-        }
-      }
-    })
-  }
-
-  abletonNoteOff = event => {
-    let { channel } = event
-    channel--
-    const noteOffListenerNames = Object.keys(this.abletonNoteOffListeners[channel])
-    noteOffListenerNames.forEach(listenerName => {
-      if (listenerName === 'undefined') {
-        console.error('Attempted to access undefined listener name.')
-      } else {
-        const { note } = event
-        const entry = this.abletonNoteOffListeners[channel][listenerName]
-        if (entry instanceof Function) {
-          entry(note)
-        } else if (entry instanceof Array) {
-          for (let i = 0; i < entry.length; ++i) {
-            entry[i](note)
-          }
-        }
-      }
-    })
-  }
-
-  noteOn = event => {
-    const {
-      note: { number },
-    } = event
-
-    // edge case for VMPK
-    if (event.timestamp === 0) {
-      event.timestamp = clock.getElapsedTime() * 1000
-    }
-
-    this.noteArray[number].number = number
-    this.noteArray[number].on = true
-    this.noteArray[number].startedAt = event.timestamp / 1000.0
-    this.noteArray[number].noteOnVelocity = event.velocity
-
-    this.noteArray[number].endedAt = 0.0
-    this.noteArray[number].noteOffVelocity = 0.0
-
-    if (this.lastNotes.length >= NUM_LAST_NOTES) {
-      this.lastNotes.shift()
-    }
-    this.lastNotes.push(number)
-    this.lastNoteOnStartedAt = this.noteArray[number].startedAt
-
-    this.numNotesCurrentlyDown++
-    const idx = this.notesCurrentlyDown.indexOf(number)
-    if (idx === -1) {
-      let ctr = 0
-      while (ctr !== 10) {
-        if (this.notesCurrentlyDown[ctr] === false) {
-          this.notesCurrentlyDown[ctr] = number
-          break
-        }
-        ++ctr
-      }
-    }
-
-    const noteOnListenerNames = Object.keys(this.noteOnListeners)
-    noteOnListenerNames.forEach(listenerName => {
-      if (listenerName === 'undefined') {
-        console.error('Attempted to access undefined listener name.')
-      } else {
-        const entry = this.noteOnListeners[listenerName]
-        if (entry instanceof Function) {
-          entry(this.noteArray[number])
-        } else if (entry instanceof Array) {
-          for (let i = 0; i < entry.length; ++i) {
-            entry[i](this.noteArray[number])
-          }
-        }
-      }
-    })
-  }
-
-  noteOff = event => {
-    const {
-      note: { number },
-    } = event
-
-    this.noteArray[number].number = number
-    this.noteArray[number].on = false
-    this.noteArray[number].endedAt = event.timestamp / 1000.0
-    this.noteArray[number].noteOffVelocity = event.velocity
-
-    //this.noteArray[number].startedAt = 0.0
-    this.noteArray[number].noteOnVelocity = 0.0
-
-    this.numNotesCurrentlyDown--
-    const idx = this.notesCurrentlyDown.indexOf(number)
-    if (idx !== -1) {
-      this.notesCurrentlyDown[idx] = false
-    }
-
-    const noteOffListenerNames = Object.keys(this.noteOffListeners)
-    noteOffListenerNames.forEach(listenerName => {
-      if (listenerName === 'undefined') {
-        console.error('Attempted to access undefined listener name.')
-      } else {
-        const entry = this.noteOffListeners[listenerName]
-        if (entry instanceof Function) {
-          entry(this.noteArray[number])
-        } else if (entry instanceof Array) {
-          for (let i = 0; i < entry.length; ++i) {
-            entry[i](this.noteArray[number])
-          }
-        }
-      }
-    })
-  }
-
-  // remember that Ableton is index base-1
-  // the CALLER is expected to pass the correct `channel` to this function.
-  addAbletonListener = (event, listener, channel, listenerName) => {
-    if (event === 'noteon') {
-      // this conditional is to fix a
-      // weird bug where this.abletonNoteOnListeners is not defined sometimes.
-      if (!this.abletonNoteOnListeners) return
-
-      const channelEntries = this.abletonNoteOnListeners[channel]
-      const entry = channelEntries[listenerName]
-      // if entry exists already
-      if (entry !== undefined) {
-        if (entry instanceof Array) {
-          // if there is already a list of functions
-          entry.push(listener)
-        } else if (entry instanceof Function) {
-          // if there is only one function
-          const newEntry = [entry, listener]
-          this.abletonNoteOnListeners[channel][listenerName] = newEntry
-        }
-      } else {
-        this.abletonNoteOnListeners[channel][listenerName] = listener
-      }
-    } else if (event === 'noteoff') {
-      const entry = this.abletonNoteOffListeners[channel][listenerName]
-      // if entry exists already
-      if (entry !== undefined) {
-        if (entry instanceof Array) {
-          entry.push(listener)
-        } else if (entry instanceof Function) {
-          const newEntry = [entry, listener]
-          this.abletonNoteOffListeners[channel][listenerName] = newEntry
-        }
-      } else {
-        this.abletonNoteOffListeners[channel][listenerName] = listener
-      }
-    } else if (event === 'controlchange') {
-      const entry = this.abletonControlChangeListeners[channel][listenerName]
-      // if entry exists already
-      if (entry !== undefined) {
-        if (entry instanceof Array) {
-          entry.push(listener)
-        } else if (entry instanceof Function) {
-          const newEntry = [entry, listener]
-          this.abletonControlChangeListeners[channel][listenerName] = newEntry
-        }
-      } else {
-        this.abletonControlChangeListeners[channel][listenerName] = listener
-      }
+      btn[sample - 1]?.classList.add('active')
+      btn[sample - 1]?.play(velocity)
     }
   }
 
-  // z. B. addListener('noteon', listener, listenerName)
-  addListener(event, listener, listenerName) {
-    if (event === 'noteon') {
-      const entry = this.noteOnListeners[listenerName]
-      // if entry exists already
-      if (entry !== undefined) {
-        if (entry instanceof Array) {
-          entry.push(listener)
-        } else if (entry instanceof Function) {
-          const newEntry = [entry, listener]
-          this.noteOnListeners[listenerName] = newEntry
-        }
-      } else {
-        this.noteOnListeners[listenerName] = listener
-      }
-    } else if (event === 'noteoff') {
-      const entry = this.noteOffListeners[listenerName]
-      // if entry exists already
-      if (entry !== undefined) {
-        if (entry instanceof Array) {
-          entry.push(listener)
-        } else if (entry instanceof Function) {
-          const newEntry = [entry, listener]
-          this.noteOffListeners[listenerName] = newEntry
-        }
-      } else {
-        this.noteOffListeners[listenerName] = listener
-      }
-    } else {
-      this.keyboard.addListener(event, 'all', listener)
-    }
-  }
+  async function getFile(url) {
+    const response = await fetch(url)
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await context.decodeAudioData(arrayBuffer)
+    return audioBuffer
+   }
+   
+   async function setupSamples(paths){
+     const audioBuffers = []
+   
+     for(const path of paths){
+       const sample = await getFile(path)
+       audioBuffers.push(sample)
+     }
+     return audioBuffers
+   }
+   
+   function playSample(audioBuffer, time){
+     const sampleSource = context.createBufferSource();
+     const gain = context.createGain()
+     gain.gain.value = 0.4;
+     sampleSource.buffer = audioBuffer
+     sampleSource.connect(gain)
+     gain.connect(context.destination)
+    //  sampleSource.resume()
+     sampleSource.start(time)
+   }
+  }, [test.velocity])
 
-  onNotePress(fn, noteNumber) {
-    const listenerName = `MIDI#${noteNumber}Press`
-    this.addListener(
-      'noteon',
-      note => {
-        if (note.number === noteNumber) {
-          fn(note)
-        }
-      },
-      listenerName
-    )
-  }
-
-  onNoteRelease(fn, noteNumber) {
-    this.addListener(
-      'noteoff',
-      note => {
-        if (note.number === noteNumber) {
-          fn(note)
-        }
-      },
-      `MIDI#${noteNumber}Release`
-    )
-  }
+  return (
+    <>
+    </>
+  )
 }
 
-const MidiControl = new WebMidiWrapper()
-export default MidiControl
+export default WebMidiTest

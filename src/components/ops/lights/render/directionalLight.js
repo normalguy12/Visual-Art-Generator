@@ -10,7 +10,7 @@ function DirectionalLight() {
     }
   }, [])
 
-  const control = useControls('ambientLight', options)
+  const control = useControls('DirectionalLight', options)
   return (
     <directionalLight args={[control.color, control.intensity]}/>
   )

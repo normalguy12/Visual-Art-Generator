@@ -10,8 +10,6 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { getID } from '@/redux/idReducer'
 
-import StateUpdate from '@/redux/stateUpdate'
-
 import store from '@/redux/store'
 
 
@@ -20,7 +18,7 @@ import store from '@/redux/store'
 const OpsList = props => {
   const [isOpen, setIsOpen] = useState(false)
 
-  const { opPlace, renderPlace } = props
+  const { opPlace, renderPlace, deleteRender } = props
 
   const dispatch = useDispatch()
   useEffect(() => {
@@ -38,13 +36,20 @@ const OpsList = props => {
   function handleClick(e){
     e.preventDefault()
     dispatch(getID(e.currentTarget.id))
-    
     setIsOpen(false)
-    opPlace();
     renderPlace();
+    opPlace();
+    console.log(store.getState().renderGet.value)  }
+
+  function handleDelete(e){
+    e.preventDefault()
+    dispatch(getID(e.currentTarget.id))
+    setIsOpen(false)
+    deleteRender();
     
-    console.log(store.getState())
+    
   }
+
   var a;
   const [name, setName] = useState('')
 
@@ -59,16 +64,18 @@ const OpsList = props => {
     console.log(a)
   }
 
-  console.log((NodeCategory.find((obj)=>obj.name === name)))
 
   const OpsElementList = (props)=>{
     return (
-        <ListItem>{props.optype} <Button id={props.optype} onClick={handleClick}>Add</Button> </ListItem>
+        <ListItem>{props.optype} 
+          <Button display='inline-block' id={props.optype} onClick={handleClick}>Add</Button>
+          {/* <Button display='inline-block' id={props.optype} onClick={handleDelete}>Delete</Button>  */}
+        </ListItem>
     )
   }
 
 const OpsItemList = (props) =>{
-  return <ListItem id={props.name} onClick={getCategory}>{props.name}</ListItem>
+  return <ListItem cursor='pointer' id={props.name} onClick={getCategory}>{props.name}</ListItem>
 }
   return (
     <>
@@ -84,7 +91,7 @@ const OpsItemList = (props) =>{
         <ModalOverlay 
           bg='blackAlpha.300'
         />
-        <ModalContent maxH="400px" maxW="500px">
+        <ModalContent maxH="400px" maxW="600px">
         <ModalHeader>Operators</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
