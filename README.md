@@ -1,4 +1,4 @@
-This used to be a Capstone Project for my graduation, however, I decided to transform it and make it available to everyone who is interested in making visual pieces.
+This used to be a Capstone Project for my graduation, however, I decided to transform it and introduce to everyone who is interested in making visual pieces. The Visual Art Generator is built 100% by JavaScript and other external libraries. It is still under construction, therefore, I am looking forward to working with visual artists and developers to make it a method to render 3D visuals on the web-based site.
 
 ## Getting Started
 
